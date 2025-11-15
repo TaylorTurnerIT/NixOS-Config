@@ -104,9 +104,34 @@
   #  wget
     git
     vscode
+    claude-code
   ];
 
   # List services that you want to enable:
+
+  # Auto-deploy Configuration from Git repository
+  systemd.services.nixos-auto-deploy = {
+    description = "Auto-deploy NixOS configuration from Git repository";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "/etc/nixos/auto-deploy.sh";
+      User = "root";
+    };
+  };
+
+  systemd.timers.nixos-auto-deploy = {
+    description = "Timer to auto-deploy NixOS configuration from Git repository";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "5min";
+      OnUnitActiveSec = "5min";
+      Unit = "nixos-auto-deploy.service";
+    };
+  };
+
+  systemd.tmpfiles.rules = [
+    "f /var/log/nixos-auto-deploy.log 0644 root root -"
+  ];
 
   # Enable the QEMU Guest
   services.qemuGuest.enable = true;
